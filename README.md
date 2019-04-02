@@ -6,10 +6,20 @@
 ### Getting started
 
 ```
-# To clone use 
-git clone --recurse-submodules {github_repo}
+git clone --recurse-submodules https://github.com/Kif11/hong-kong-rat
+cd hong-kong-rat
+yarn install
+# To pull assets
+yarn pull
+```
 
-# To update submodules use
+Useful submodules commands:
+
+```
+# If you forgot to clone with recursive submodules, run
+git submodule update --init --recursive
+
+# To update submodules use at any point
 git submodule foreach git pull
 ```
 
