@@ -1,6 +1,6 @@
-const THREE = require('three');
+import * as THREE from 'three';
+import { DEBUG } from './Env';
 
-const DEBUG_MODE = false;
 
 class Line {
   constructor(start, dir, length) {
@@ -88,7 +88,7 @@ export default class SparseWorldGrid {
   // call this after setting world matrix.
   fillGridForBufferMesh(mesh, scene) {
     let starsGeometry = null;
-    if (DEBUG_MODE) {
+    if (DEBUG) {
       starsGeometry = new THREE.Geometry();
     }
     const pos = mesh.geometry.attributes.position.array;
@@ -144,14 +144,14 @@ export default class SparseWorldGrid {
         const stride = baseLine.dir.clone().multiplyScalar(this.cellSize);
         for (let k = 0; k < length; k += this.cellSize) {
           this.setValueAtWorldPos(nextPoint.x, nextPoint.y, nextPoint.z, mesh);
-          if (DEBUG_MODE) {
+          if (DEBUG) {
             starsGeometry.vertices.push(nextPoint.clone());
           }
           nextPoint.add(stride);
         }
       }
     }
-    if (DEBUG_MODE) {
+    if (DEBUG) {
       const starsMaterial = new THREE.PointsMaterial({ color: 0x888888 });
       const starField = new THREE.Points(starsGeometry, starsMaterial);
       scene.add(starField);

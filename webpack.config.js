@@ -1,69 +1,76 @@
 const path = require('path');
-const CopyPlugin = require("copy-webpack-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
 
-const buildDirectory = path.resolve(__dirname, "build");
+const buildDirectory = path.resolve(__dirname, 'build');
 
 module.exports = {
-  mode: "production",
-  entry: "./src/index.js",
+  // mode: "production",
+  entry: './src/index.js',
   output: {
-    filename: "bundle.js",
-    path: buildDirectory
+    filename: 'bundle.js',
+    path: buildDirectory,
   },
   module: {
     rules: [
       {
         test: /\.m?js$/,
-        exclude: /(node_modules)/,
+        exclude: /(node_modules|bower_components)/,
         use: {
-          loader: "babel-loader",
+          loader: 'babel-loader',
           options: {
-            presets: ["@babel/preset-env"]
-          }
-        }
+            presets: ['@babel/preset-env'],
+            cacheDirectory: true,
+          },
+        },
       },
       {
-        test: /\.(fbx)$/,
+        test: /\.(fbx|gltf)$/,
         use: {
-          loader: "file-loader",
+          loader: 'file-loader',
           options: {
-            name: "static/[name].[hash:8].[ext]"
-          }
-        }
-      }
-    ]
+            name: 'static/[name].[hash:8].[ext]',
+          },
+        },
+      },
+    ],
   },
   plugins: [
+    new webpack.EnvironmentPlugin({
+      DEBUG: false,
+      ORBIT_CONTROLS: false,
+    }),
     new HtmlWebpackPlugin({
-      inject: true
+      inject: true,
+      template: 'public/index.html',
     }),
     new CopyPlugin([
       {
-        from: "public/scene",
-        to: "scene"
-      }
-    ])
+        from: 'public/assets',
+        to: 'assets',
+      },
+      {
+        from: 'public/index.css',
+      },
+    ]),
   ],
   optimization: {
-    // Automatically split vendor and commons
-    // https://twitter.com/wSokra/status/969633336732905474
-    // https://medium.com/webpack/webpack-4-code-splitting-chunk-graph-and-the-splitchunks-optimization-be739a861366
     splitChunks: {
-      chunks: "all",
-      name: false
+      chunks: 'all',
+      name: false,
     },
-    // Keep the runtime chunk separated to enable long term caching
-    // https://twitter.com/wSokra/status/969679223278505985
-    runtimeChunk: true
+    runtimeChunk: true,
   },
   devServer: {
     contentBase: buildDirectory,
-    compress: true,
     disableHostCheck: true,
-    port: 3000
+    compress: true,
+    port: 3000,
+    hot: true,
+    clientLogLevel: 'error',
   },
   performance: {
-    hints: false
-  }
+    hints: false,
+  },
 };

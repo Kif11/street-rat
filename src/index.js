@@ -1,19 +1,4 @@
-import initWebScene from './HKAlley';
-import TestScene from './TestScene';
+import MainScene from './MainScene';
 
-const scene = 'test';
-
-document.body.style.margin = '0';
-
-switch (scene) {
-  case 'main':
-    initWebScene();
-    break;
-  case 'test': {
-    const s = new TestScene();
-    s.render();
-    break;
-  }
-  default:
-    initWebScene();
-}
+const scene = new MainScene();
+scene.init();

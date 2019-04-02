@@ -10,9 +10,17 @@
 git clone --recurse-submodules {github_repo}
 
 # To update submodules use
-git submodule foreach git pull origin master
+git submodule foreach git pull
 ```
 
+To get started look at `src/index.js`. And go deeper from there.
+
+### Debugging
+
+```
+# To show extra logs and helpers
+export DEBUG=true
+```
 
 #### While making this demo, we made some reusable utilities related to new advances in 3D Web Graphics.  
  #### [ + ] Box Projected Env Maps for realistic reflections
