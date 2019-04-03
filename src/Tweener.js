@@ -4,29 +4,34 @@ const THREE = require('three');
 export default class ParabolicFootTweener {
   constructor(mover) {
     this.tweens = [];
-    this.helperVec = new THREE.Vector3();
+    this.tmps = {
+      v1: new THREE.Vector3(),
+      v2: new THREE.Vector3(),
+    };
     this.tweenKeys = {};
     this.mover = mover;
   }
 
-  addTween(key, fromVector, toVector, upVector, totalSteps, rotator) {
+  addTween(key, fromVector, toVector, upVector, totalTime) {
     // do not add tween if there is already a tween for this vector
     if (this.tweenKeys[key]) {
       return false;
     }
 
     this.tweenKeys[key] = 1;
-    const step = fromVector.distanceTo(toVector) / totalSteps;
-    const dirVector = toVector.clone().sub(fromVector).normalize().multiplyScalar(step);
+    const dirVector = toVector.clone().sub(fromVector);
+    const origVector = fromVector.clone();
+
+    const startTime = Date.now();
     this.tweens.push({
       fromVector,
+      origVector,
       dirVector,
       upVector,
-      step,
       count: 0,
-      totalSteps,
+      totalTime,
       key,
-      rotator,
+      startTime,
     });
     return true;
   }
@@ -34,20 +39,16 @@ export default class ParabolicFootTweener {
   update() {
     this.tweens.forEach((tweener, index, object) => {
       tweener.fromVector.add(tweener.dirVector);
-      const x = (tweener.count - 0.5 * tweener.totalSteps) / (0.5 * tweener.totalSteps);
-      let parabolicIdx = 1.5 * x * x;
-      if (tweener.count > 0.5 * tweener.totalSteps) {
-        parabolicIdx *= -1;
-      }
-
-      this.helperVec.copy(tweener.upVector).multiplyScalar(0.45 * parabolicIdx * tweener.step);
-      tweener.fromVector.add(this.helperVec);
-
-      tweener.count += 1;
-      if (tweener.count >= tweener.totalSteps) {
+      const msElapsed = Date.now() - tweener.startTime;
+      const x = 2 * msElapsed / tweener.totalTime - 1;
+      const parabolicIdx = -x * x + 1;
+      if (x > 1.2) {
         object.splice(index, 1);
         delete this.tweenKeys[tweener.key];
       }
+      this.tmps.v1.copy(tweener.upVector).multiplyScalar(4 * parabolicIdx);
+      this.tmps.v2.copy(tweener.dirVector).multiplyScalar(x);
+      tweener.fromVector.copy(tweener.origVector).add(this.tmps.v1.add(this.tmps.v2));
     });
   }
 }
