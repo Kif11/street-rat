@@ -14,6 +14,16 @@ import {
 const HERO_HALF_WIDTH = 1.9;
 const HERO_HEIGHT = 4;
 const HERO_LEG_FORWARD_OFFSET = 1;
+const HERO_LEG_FORWARD_BODY_OFFSET = -6;
+const HERO_LEG_FORWARD_HEAD_OFFSET = HERO_LEG_FORWARD_BODY_OFFSET + 14;
+const HERO_LEG_FORWARD_TAIL_OFFSET = HERO_LEG_FORWARD_BODY_OFFSET - 14;
+
+const MS_PER_STEP = 200;
+
+// camera constants
+const ZOOM_IN_MS = 266;
+const ZOOM_OUT_STEP = 0.05;
+
 
 /**
   * Hero Mover:: Third Person controls for the hero that
@@ -54,8 +64,8 @@ export default class HeroMover {
     this.cameraCollider = new CameraCollider(
       this.camera,
       this.hero,
-      800 / 3,
-      0.05,
+      ZOOM_IN_MS,
+      ZOOM_OUT_STEP,
     );
 
     // set up the hero // right now will be the positions of two boxes
@@ -155,7 +165,7 @@ export default class HeroMover {
     }
 
     const msElapsed = Date.now() - this.startTime;
-    if (msElapsed < 450) {
+    if (msElapsed < MS_PER_STEP) {
       return;
     }
 
@@ -193,19 +203,17 @@ export default class HeroMover {
       forwardFoot.normal.copy(tt[2]);
       const upNew = this.alignHeroToGround();
 
-      // realign hero
       if (!this.walking) {
         this.tweenHeroToCameraForward();
         this.walking = true;
       }
-
       // get head position
       const headPos = this.adjustPosForHead(
         this.incomingPos.clone(),
         curFootOffset,
         upNew,
       );
-      new TWEEN.Tween(headBone.position).to(headPos, 400 / 3).start();
+      new TWEEN.Tween(headBone.position).to(headPos, MS_PER_STEP).start();
 
       // tween forward foot position
       addScalarMultiple(this.incomingPos, upNew, 1);
@@ -220,21 +228,21 @@ export default class HeroMover {
         forwardFoot.position,
         frontFootPos,
         this.worldAxis.up,
-        80 / 3,
+        MS_PER_STEP,
       );
 
       // tween back foot position
       const backFootPos = addScalarMultiple(
         this.incomingPos.clone(),
         this.worldAxis.forward,
-        -4,
+        -5,
       );
       this.tweener.addTween(
         this.curBone % 2,
         foot.position,
         backFootPos,
         this.worldAxis.up,
-        80 / 3,
+        MS_PER_STEP,
       );
 
       // tween body position
@@ -244,12 +252,11 @@ export default class HeroMover {
         upNew,
       );
       new TWEEN.Tween(this.hero.position)
-        .to(heroPos, 200 / 3)
-        .delay(200 / 3)
+        .to(heroPos, 0.3 * MS_PER_STEP)
+        .delay(0.7 * MS_PER_STEP)
         .start();
       new TWEEN.Tween(this.heroCamera.position)
-        .to(heroPos, 200 / 3)
-        .delay(200 / 3)
+        .to(heroPos, 4.3 * MS_PER_STEP)
         .start();
 
       // tween tail position
@@ -258,11 +265,11 @@ export default class HeroMover {
         curFootOffset,
         upNew,
       );
-      new TWEEN.Tween(tailBone.position).to(tailPos, 300).start();
+      new TWEEN.Tween(tailBone.position).to(tailPos, MS_PER_STEP).start();
       this.stagnantTale = true;
       setTimeout(() => {
         this.stagnantTale = false;
-      }, 300);
+      }, MS_PER_STEP);
     }
   };
 
@@ -282,19 +289,19 @@ export default class HeroMover {
     incomingPos.copy(this.hero.position);
     addScalarMultiple(this.incomingPos, this.worldAxis.left, curFootOffset);
     addScalarMultiple(this.incomingPos, this.worldAxis.up, HERO_HEIGHT + 3);
-    addScalarMultiple(this.incomingPos, this.worldAxis.forward, 14);
+    addScalarMultiple(this.incomingPos, this.worldAxis.forward, 17);
     return incomingPos;
   };
 
   adjustPosForHero = (incomingPos, curFootOffset, up) => {
-    addScalarMultiple(incomingPos, this.worldAxis.forward, -6);
+    addScalarMultiple(incomingPos, this.worldAxis.forward, HERO_LEG_FORWARD_BODY_OFFSET);
     addScalarMultiple(incomingPos, this.worldAxis.left, -curFootOffset);
-    addScalarMultiple(incomingPos, up, 1.5);
+    addScalarMultiple(incomingPos, up, 0.5);
     return incomingPos;
   };
 
   adjustPosForHead = (incomingPos, curFootOffset, up) => {
-    addScalarMultiple(incomingPos, this.worldAxis.forward, 8);
+    addScalarMultiple(incomingPos, this.worldAxis.forward, HERO_LEG_FORWARD_HEAD_OFFSET);
     addScalarMultiple(incomingPos, this.worldAxis.left, -curFootOffset);
     addScalarMultiple(incomingPos, up, 6);
     return incomingPos;
@@ -302,7 +309,7 @@ export default class HeroMover {
 
   adjustPosForTail = (incomingPos, curFootOffset, up) => {
     incomingPos.add(up);
-    addScalarMultiple(incomingPos, this.worldAxis.forward, -16.9);
+    addScalarMultiple(incomingPos, this.worldAxis.forward, HERO_LEG_FORWARD_TAIL_OFFSET);
     addScalarMultiple(incomingPos, this.worldAxis.left, -2 * curFootOffset);
     return incomingPos;
   };
@@ -324,8 +331,10 @@ export default class HeroMover {
       mesh.material.side = THREE.DoubleSide;
     });
     const angles = [
+      (-7.5 * Math.PI) / 8,
       (-5 * Math.PI) / 8,
       (-5.5 * Math.PI) / 8,
+      (-6 * Math.PI) / 8,
       (-7 * Math.PI) / 8,
     ];
     angles.forEach((i) => {

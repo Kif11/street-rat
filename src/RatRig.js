@@ -58,8 +58,8 @@ class RatRig {
       color: '0xff00ff',
       wireframe: true,
     });
-    if (DEBUG) {
-      boneMat.visible = true;
+    if (!DEBUG) {
+      boneMat.visible = false;
     }
     const numFeet = 2;
 
@@ -119,34 +119,23 @@ class RatRig {
       this.scene.add(helper);
     }
 
-    const axes = [
-      new THREE.Vector3(-1, 0, 0).normalize(),
-      new THREE.Vector3(1, 0, 0).normalize(),
-    ];
-
     for (let j = 0; j < 2; j += 1) {
       this._addIKForBackFeet(
         boneGroup.children[j + 1],
         this.iks,
         4,
         this.bonePoints[j],
-        axes[j],
       );
     }
 
     /* eslint-disable-next-line prefer-destructuring */
     boneGroup = children[1].children[3].children[0].children[0];
-    const axesb = [
-      new THREE.Vector3(-1, 0, 0).normalize(),
-      new THREE.Vector3(1, 0, 0).normalize(),
-    ];
     for (let j = 0; j < 2; j += 1) {
       this._addIKForBackFeet(
         boneGroup.children[j],
         this.iks,
         4,
         this.bonePoints[j + 2],
-        axesb[j],
       );
     }
     // ad ik for the spine
@@ -161,13 +150,13 @@ class RatRig {
     return model;
   };
 
-  _addIKForBackFeet(boneGroup, iks, length, boneTarget, axis) {
+  _addIKForBackFeet(boneGroup, iks, length, boneTarget) {
     const ik = new IK();
     const chain = new IKChain();
     let currentBone = boneGroup;
 
     const constraintBall = new IKBallConstraint(180);
-    const constraintHinge = new IKHingeConstraint(360, axis, this.scene);
+    const constraintHinge = new IKHingeConstraint(360);
     for (let i = 0; i < length; i += 1) {
       /* eslint-disable-next-line prefer-destructuring */
       currentBone = currentBone.children[0];
@@ -175,7 +164,7 @@ class RatRig {
       if (i === 0) {
         constraints = [constraintBall];
       } else if (i === length - 2) {
-        constraints = [new IKHingeConstraint(130, axis, this.scene)];
+        constraints = [new IKHingeConstraint(130)];
       } else {
         constraints = [constraintHinge];
       }
